@@ -6,17 +6,20 @@ package dumpvar;
 
 # translate control chars to ^X - Randal Schwartz
 # Modifications to print types by Peter Gordon v1.0
+
+# Ilya Zakharevich -- patches after 5.001 (and some before ;-)
+
 # Won't dump symbol tables and contents of debugged files by default
 
-$winsize = 80;
+$winsize = 80 unless defined $winsize;
 
 
 # Defaults
 
 # $globPrint = 1;
-$printUndef = 1;
-$tick = "'";
-$unctrl = 'quote';
+$printUndef = 1 unless defined $printUndef;
+$tick = "'" unless defined $tick;
+$unctrl = 'quote' unless defined $unctrl;
 
 sub main::dumpValue {
   local %address;
@@ -46,13 +49,13 @@ sub stringify {
 	  s/([\'\\])/\\$1/g if $tick eq '\'';
 	} elsif ($unctrl eq 'unctrl') {
 	  s/([\"\\])/\\$1/g ;
-	  s/([\001-\037\177])/'^'.pack('c',ord($1)^64)/eg;
+	  s/([\000-\037\177])/'^'.pack('c',ord($1)^64)/eg;
 	  s/([\200-\377])/'\\0x'.sprintf('%2X',ord($1))/eg 
 	    if $quoteHighBit;
 	} elsif ($unctrl eq 'quote') {
 	  s/([\"\\\$\@])/\\$1/g if $tick eq '"';
 	  s/\033/\\e/g;
-	  s/([\001-\037\177])/'\\c'.chr(ord($1)^64)/eg;
+	  s/([\000-\037\177])/'\\c'.chr(ord($1)^64)/eg;
 	}
 	s/([\200-\377])/'\\'.sprintf('%3o',ord($1))/eg if $quoteHighBit;
 	($noticks || /^\d+(\.\d*)?\Z/) 
@@ -96,19 +99,16 @@ sub unwrap {
     local($v) = shift ; 
     local($s) = shift ; # extra no of spaces
     local(%v,@v,$sp,$value,$key,$type,@sortKeys,$more,$shortmore,$short) ;
-    local($tHashDepth, $tArrayDepth, $ref) ;
+    local($tHashDepth,$tArrayDepth) ;
 
     $sp = " " x $s ;
     $s += 3 ; 
-    $type = "";
-    $ref = ref $v;
-    defined $ref or $ref = "";
 
     # Check for reused addresses
     if (defined ref $v) { 
       ($address) = $v =~ /(0x[0-9a-f]+)/ ; 
       if (defined $address) { 
-	$type = $1 if $v =~ /=(.*?)\(/ ;
+	($type) = $v =~ /=(.*?)\(/ ;
 	$address{$address}++ ;
 	if ( $address{$address} > 1 ) { 
 	  print "${sp}-> REUSED_ADDRESS\n" ; 
@@ -124,7 +124,7 @@ sub unwrap {
       } 
     }
 
-    if ( $ref eq 'HASH' or $type eq 'HASH') { 
+    if ( ref $v eq 'HASH' or $type eq 'HASH') { 
 	@sortKeys = sort keys(%$v) ;
 	undef $more ; 
 	$tHashDepth = $#sortKeys ; 
@@ -156,11 +156,11 @@ sub unwrap {
 	    DumpElem $value, $s;
 	}
 	print "$sp$more" if defined $more ;
-    } elsif ( $ref eq 'ARRAY' or $type eq 'ARRAY') { 
+    } elsif ( ref $v eq 'ARRAY' or $type eq 'ARRAY') { 
 	$tArrayDepth = $#{$v} ; 
 	undef $more ; 
 	$tArrayDepth = $#{$v} < $arrayDepth-1 ? $#{$v} : $arrayDepth-1 
-	  if defined $arrayDepth and $arrayDepth ne '' ; 
+	  unless  $arrayDepth eq '' ; 
 	$more = "....\n" if $tArrayDepth < $#{$v} ; 
 	$shortmore = "";
 	$shortmore = " ..." if $tArrayDepth < $#{$v} ;
@@ -182,11 +182,12 @@ sub unwrap {
 	    print "$sp$num  ";
 	    DumpElem $v->[$num], $s;
 	}
+	print "$sp  empty array\n" unless @$v;
 	print "$sp$more" if defined $more ;  
-    } elsif ( $ref eq 'SCALAR' or $ref eq 'REF' or $type eq 'SCALAR' ) { 
+    } elsif ( ref $v eq 'SCALAR' or ref $v eq 'REF' or $type eq 'SCALAR' ) { 
 	    print "$sp-> ";
 	    DumpElem $$v, $s;
-    } elsif ($ref eq 'GLOB') {
+    } elsif (ref $v eq 'GLOB') {
       print "$sp-> ",&stringify($$v,1),"\n";
       if ($globPrint) {
 	$s += 3;
@@ -259,7 +260,7 @@ sub tick {
 }
 
 sub quote {
-  if ($_[0]) {
+  if (@_ and $_[0] eq '"') {
     $tick = '"';
     $unctrl = 'quote';
   } elsif (@_) {		# Need to set
@@ -334,4 +335,5 @@ sub main::dumpvar {
     }
 }
 
+1;
 
