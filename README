@@ -1,0 +1,64 @@
+This version of Debugger Kit has the following improvements over
+version in 5.001:
+
+1) Minor bugs corrected;
+2) ReadLine support when used with ReadLine 0.5;
+3) New 'h topic' command;
+4) New 'O' command to set options, type `h O' to see help;
+5) Can recursively dump variables (subject to some Options): see 'x', 'O'.
+6) Does not print a lot of junk with 'X' and 'V' (subject to options).
+7) Commands 'X', 'V' and 'S' take regexp's.
+
+0.7:
+
+8) Interruptable during dumping.
+9) data internal to perl (like `undef', `GLOB(0x03)') is printed
+without quotes;
+10) defaults for printing style are saner now (prints FileHandles for
+globs by default).
+11) Rendezvous code added: if started with PERLDB_NOTTY set, the
+debugger runs stealthy until `kill -2' or equivalent. At this moment
+tries to find a tty and uses it for user interaction (see comments at
+start of perl5db.pl).
+
+0.8:
+
+12) All configuration is moved to PERLDB_OPTS env. variable.
+13) Additional configuration options added: Now it is possible to 
+	a) run your program in one tty (or as a daemon),
+	b) debug it in a different one,
+	c) show the current line info into a third one (or pipe to external
+		program of your choice - hi, tom), 
+	d) postpone the debugger startup until the first INTERRUPT,
+	e) postpone the choice of the tty to use until the first INTERRUPT.
+(mostly independently of each other). You can set your dumping
+preferences from PERLDB_OPTS too.
+14) "empty array" message added.
+15) \0 are shown in strings when q=".
+16) repeated `a' on the same line works now.
+17) If you install a patch to pp_ctl.c, recursive debugging works: you
+can interrupt commands given from the debugger command line, step,
+next, or trace through them with new extended commands
+	[snt] expression
+
+INSTALL
+
+Move the files from DB directory to a directory perl reads its modules
+from. You can find these directories by
+
+perl -le 'print "@INC"'
+
+and change them by setting PERL5DB and/or PERLDB.
+Microdocumentations available on 'h' command and at start of
+perl5db.pl.
+
+READLINE support
+
+Out of the box package comes with stub only. Get the ReadLine package
+from the location below.
+
+AUTHOR/BUGS
+
+Modifications by
+ilya@math.ohio-state.edu (Ilya Zakharevich)
+Std place for latest version: ftp://ftp.math.ohio-state.edu/pub/users/ilya/perl

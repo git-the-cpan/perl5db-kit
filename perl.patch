@@ -1,0 +1,19 @@
+*** pp_ctl.c~	Fri Aug 25 03:42:36 1995
+--- pp_ctl.c	Sun Aug 27 23:00:33 1995
+***************
+*** 1200,1206 ****
+  	if (!cv)
+  	    DIE("No DB::DB routine defined");
+  
+! 	if (CvDEPTH(cv) >= 1)		/* don't do recursive DB::DB call */
+  	    return NORMAL;
+  
+  	SAVEI32(debug);
+--- 1200,1206 ----
+  	if (!cv)
+  	    DIE("No DB::DB routine defined");
+  
+! 	if (CvDEPTH(cv) >= 1 && !(debug & (1<<30)))		/* don't do recursive DB::DB call */
+  	    return NORMAL;
+  
+  	SAVEI32(debug);
