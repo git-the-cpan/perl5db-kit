@@ -637,7 +637,8 @@ sub DB {
 			    unless $hist[$i] =~ /^.?$/;
 		    };
 		    next CMD; };
-		$cmd =~ s/^p( .*)?$/print \$DB::OUT$1/;
+		$cmd =~ s/^p( .*)$/print \$DB::OUT$1/;
+		$cmd =~ s/^p$/print \$DB::OUT \$_/;
 		$cmd =~ /^=/ && do {
 		    if (local($k,$v) = ($cmd =~ /^=\s*(\S+)\s+(.*)/)) {
 			$alias{$k}="s~$k~$v~";

@@ -41,6 +41,9 @@ can interrupt commands given from the debugger command line, step,
 next, or trace through them with new extended commands
 	[snt] expression
 
+0.9
+18) Bug with standalone `p' corrected.
+
 INSTALL
 
 Move the files from DB directory to a directory perl reads its modules
@@ -51,6 +54,13 @@ perl -le 'print "@INC"'
 and change them by setting PERL5DB and/or PERLDB.
 Microdocumentations available on 'h' command and at start of
 perl5db.pl.
+
+The files in DB/Term directory should be copied to the Term
+subdirectory of above directory.
+
+If you want recursive debugging, you need to apply the supplied unofficial
+unofficial patch to perl. I would like to here about all the anomalies
+you encounter with recursive debugging, since it is very new feature.
 
 READLINE support
 
