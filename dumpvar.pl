@@ -96,16 +96,19 @@ sub unwrap {
     local($v) = shift ; 
     local($s) = shift ; # extra no of spaces
     local(%v,@v,$sp,$value,$key,$type,@sortKeys,$more,$shortmore,$short) ;
-    local($tHashDepth,$tArrayDepth) ;
+    local($tHashDepth, $tArrayDepth, $ref) ;
 
     $sp = " " x $s ;
     $s += 3 ; 
+    $type = "";
+    $ref = ref $v;
+    defined $ref or $ref = "";
 
     # Check for reused addresses
     if (defined ref $v) { 
       ($address) = $v =~ /(0x[0-9a-f]+)/ ; 
       if (defined $address) { 
-	($type) = $v =~ /=(.*?)\(/ ;
+	$type = $1 if $v =~ /=(.*?)\(/ ;
 	$address{$address}++ ;
 	if ( $address{$address} > 1 ) { 
 	  print "${sp}-> REUSED_ADDRESS\n" ; 
@@ -121,7 +124,7 @@ sub unwrap {
       } 
     }
 
-    if ( ref $v eq 'HASH' or $type eq 'HASH') { 
+    if ( $ref eq 'HASH' or $type eq 'HASH') { 
 	@sortKeys = sort keys(%$v) ;
 	undef $more ; 
 	$tHashDepth = $#sortKeys ; 
@@ -153,11 +156,11 @@ sub unwrap {
 	    DumpElem $value, $s;
 	}
 	print "$sp$more" if defined $more ;
-    } elsif ( ref $v eq 'ARRAY' or $type eq 'ARRAY') { 
+    } elsif ( $ref eq 'ARRAY' or $type eq 'ARRAY') { 
 	$tArrayDepth = $#{$v} ; 
 	undef $more ; 
 	$tArrayDepth = $#{$v} < $arrayDepth-1 ? $#{$v} : $arrayDepth-1 
-	  unless  $arrayDepth eq '' ; 
+	  if defined $arrayDepth and $arrayDepth ne '' ; 
 	$more = "....\n" if $tArrayDepth < $#{$v} ; 
 	$shortmore = "";
 	$shortmore = " ..." if $tArrayDepth < $#{$v} ;
@@ -180,10 +183,10 @@ sub unwrap {
 	    DumpElem $v->[$num], $s;
 	}
 	print "$sp$more" if defined $more ;  
-    } elsif ( ref $v eq 'SCALAR' or ref $v eq 'REF' or $type eq 'SCALAR' ) { 
+    } elsif ( $ref eq 'SCALAR' or $ref eq 'REF' or $type eq 'SCALAR' ) { 
 	    print "$sp-> ";
 	    DumpElem $$v, $s;
-    } elsif (ref $v eq 'GLOB') {
+    } elsif ($ref eq 'GLOB') {
       print "$sp-> ",&stringify($$v,1),"\n";
       if ($globPrint) {
 	$s += 3;
